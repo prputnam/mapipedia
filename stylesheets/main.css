@@ -14,3 +14,15 @@ body {
 .map-wrapper {
     height:100vh;
 }
+
+.italic {
+    font-style: italic;
+}
+
+h1 {
+    font-family: 'Fjalla One', sans-serif;
+}
+
+p {
+    font-family: 'Lato', sans-serif;
+}
