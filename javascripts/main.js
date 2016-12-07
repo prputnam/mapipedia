@@ -74,7 +74,6 @@ function buildSidebarContent(data) {
 }
 
 function extractContentFromWikiResponse(data) {
-    console.log(data)
     var
     articleData = Object.values(data.query.pages)[0],
     content = {
