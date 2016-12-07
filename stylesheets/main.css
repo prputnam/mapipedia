@@ -1,3 +1,16 @@
-body { background-color: #DDD; }
+body {
+    margin: 0;
+    padding: 0;
+}
 
-#map { height: 900px; width: 82%; margin: 0 auto; }
+.container {
+    height:100vh;
+}
+
+#map {
+    height: 100%;
+}
+
+.map-wrapper {
+    height:100vh;
+}
