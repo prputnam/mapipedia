@@ -5,6 +5,7 @@ body {
 
 .leaflet-header {
     width: 100%;
+    height: 70px;
 }
 
 .leaflet-header .leaflet-control {
@@ -36,8 +37,7 @@ body {
     vertical-align: middle;
 }
 
-.leaflet-top,
-.leaflet-sidebar {
+.leaflet-top{
     margin-top: 70px;
 }
 
