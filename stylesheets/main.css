@@ -66,11 +66,11 @@ body {
     font-style: italic;
 }
 
-.left {
+.leaflet-header .left {
     float: left;
 }
 
-.right {
+.leaflet-header .right {
     float: right;
 }
 
