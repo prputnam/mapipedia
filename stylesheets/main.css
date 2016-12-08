@@ -19,7 +19,6 @@ body {
 
 .leaflet-header a {
     margin-right: 32px;
-    text-decoration: none;
 }
 
 .leaflet-header p.github {
@@ -59,6 +58,10 @@ body {
     height: initial;
 }
 
+.leaflet-sidebar .close {
+    z-index: 800;
+}
+
 .italic {
     font-style: italic;
 }
@@ -77,4 +80,8 @@ h1 {
 
 p {
     font-family: 'Lato', sans-serif;
+}
+
+a {
+    text-decoration: none;
 }
