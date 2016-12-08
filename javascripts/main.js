@@ -3,7 +3,7 @@ updatingArticles = false,
 ignoreMotion = false,
 apiRequest = null,
 articleLayer = new PruneClusterForLeaflet(),
-maxArticleZoomLevel = 12,
+articleZoomBound = 12,
 zoomWarningDisplayed = false;
 
 articleLayer.PrepareLeafletMarker = function(leafletMarker, markerData) {
@@ -31,6 +31,11 @@ articleLayer.PrepareLeafletMarker = function(leafletMarker, markerData) {
         });
     });
 };
+
+
+function belowArticleZoomBound(map) {
+    return map.getZoom() >= articleZoomBound;
+}
 
 function getFirstProperty(object) {
     for(var property in object) return object[property];
@@ -128,10 +133,11 @@ function addArticlesToMap(data) {
 function updateArticles() {
     map.fireEvent("dataloading");
 
-    if(map.getZoom() >= maxArticleZoomLevel) {
+    if(belowArticleZoomBound(map)) {
 
         if(zoomWarningDisplayed) {
             sidebar.hide();
+            sidebar.showCloseButton();
             zoomWarningDisplayed = false;
         }
 
@@ -147,8 +153,9 @@ function updateArticles() {
             addArticlesToMap(data);
         });
     } else {
-        var levelChangeNeeded = maxArticleZoomLevel - map.getZoom();
+        var levelChangeNeeded = articleZoomBound - map.getZoom();
         sidebar.setContent(buildZoomWarningSidebarContent(levelChangeNeeded));
+        sidebar.hideCloseButton();
 
         articleLayer.RemoveMarkers();
         articleLayer.ProcessView();
@@ -204,6 +211,14 @@ var sidebar = L.control.sidebar('article', {
     position: 'left'
 });
 
+sidebar.hideCloseButton = function() {
+    $('a.close').hide();
+};
+
+sidebar.showCloseButton = function() {
+    $('a.close').show();
+};
+
 map.addControl(sidebar);
 
 new L.Control.GeoSearch({
@@ -229,7 +244,7 @@ map.on('moveend', function(event) {
 });
 
 map.on('click', function(event) {
-    if(map.getZoom() >= maxArticleZoomLevel) {
+    if(belowArticleZoomBound()) {
         sidebar.hide();
     }
 });
