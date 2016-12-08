@@ -42,11 +42,11 @@ body {
 }
 
 .container {
-    height:100vh;
+    height: 100vh;
 }
 
 #map {
-    height: 100%;
+    height: 100vh;
 }
 
 .map-wrapper {
@@ -54,7 +54,7 @@ body {
 }
 
 .leaflet-control#article {
-    max-height: 90.5vh;
+    max-height: calc(90vh - 20px);
     height: initial;
 }
 
