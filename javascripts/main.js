@@ -197,7 +197,7 @@ var zoomControl = L.control.zoom({
 
 map.addControl(zoomControl);
 
-var sidebar = L.control.sidebar('sidebar', {
+var sidebar = L.control.sidebar('article', {
     position: 'left'
 });
 
@@ -227,6 +227,6 @@ map.on('click', function(event) {
     if(map.getZoom() >= maxArticleZoomLevel) {
         sidebar.hide();
     }
-})
+});
 
 updateArticles();

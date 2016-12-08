@@ -15,8 +15,8 @@ body {
     height:100vh;
 }
 
-.leaflet-sidebar .leaflet-control#sidebar {
-    max-height: 98vh;
+.leaflet-control#article {
+    max-height: 90.5vh;
     height: initial;
 }
 
