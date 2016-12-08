@@ -32,6 +32,10 @@ articleLayer.PrepareLeafletMarker = function(leafletMarker, markerData) {
     });
 };
 
+function getFirstProperty(object) {
+    for(var property in object) return object[property];
+}
+
 function buildWelcomeSidebarContent() {
     var html = '';
 
@@ -74,7 +78,7 @@ function buildSidebarContent(data) {
 
 function extractContentFromWikiResponse(data) {
     var
-    articleData = Object.values(data.query.pages)[0],
+    articleData = getFirstProperty(data.query.pages),
     content = {
         title: articleData.title,
         summary: articleData.extract,
