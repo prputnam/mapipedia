@@ -1,3 +1,7 @@
+//
+// Declarations
+//
+
 var
 updatingArticles = false,
 ignoreMotion = false,
@@ -6,32 +10,119 @@ articleLayer = new PruneClusterForLeaflet(),
 articleZoomBound = 12,
 zoomWarningDisplayed = false;
 
-articleLayer.PrepareLeafletMarker = function(leafletMarker, markerData) {
-    leafletMarker.on('click', function(){
-        var params = {
-            action: "query",
-            format: "json",
-            titles: markerData.title,
-            prop: "pageimages|extracts|info",
-            pithumbsize: 300,
-            exintro: true,
-            inprop: 'url',
-            origin: '*'
-        };
-
-        var req = $.getJSON(
-            'https://en.wikipedia.org/w/api.php',
-            params
-        );
-
-        req.done(function(data) {
-            var content = buildSidebarContent(data);
-            sidebar.setContent(content);
-            sidebar.show();
-        });
-    });
+// Map Layers
+var
+carto = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+}),
+terrain =  L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    ext: 'png'
+}),
+toner =  L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.{ext}', {
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    ext: 'png'
+}),
+osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+}),
+baseMaps = {
+    "CartoDB": carto,
+    "OpenStreetMap": osm,
+    "Terrian": terrain,
+    "Toner": toner
 };
 
+// Map itself and controls
+var
+map = L.map('map', {
+    center: [43.0861056, -77.672703],
+    zoom: 12,
+    minZoom: 6,
+    maxZoom: 15,
+    zoomControl: false,
+    layers: [carto]
+}),
+zoomControl = L.control.zoom({
+    position: 'topright'
+}),
+sidebar = L.control.sidebar('article', {
+    position: 'left'
+}),
+search = new L.Control.GeoSearch({
+    provider: new L.GeoSearch.Provider.Google(),
+    position: 'topleft',
+    showMarker: false
+}),
+loadingControl = L.Control.loading({
+    position: 'topleft'
+}),
+header = L.control.header('header'),
+layerControl = L.control.layers(baseMaps);
+
+//
+// Event handlers
+//
+
+map.on('moveend', function(event) {
+    if(!ignoreMotion) {
+        updateArticles();
+    }
+});
+
+map.on('click', function(event) {
+    if(belowArticleZoomBound(map)) {
+        sidebar.hide();
+    }
+});
+
+sidebar.on('show', function(event) {
+    ignoreMotion = true;
+});
+
+sidebar.on('shown', function(event) {
+    setTimeout(function() {
+        ignoreMotion = false;
+    }, 250);
+});
+
+sidebar.on('hide', function(event) {
+    ignoreMotion = true;
+});
+
+sidebar.on('hidden', function(event) {
+    setTimeout(function() {
+        ignoreMotion = false;
+    }, 250);
+});
+
+//
+// Functions
+//
+
+function init() {
+    layerControl.addTo(map);
+    articleLayer.addTo(map);
+
+    map.addControl(zoomControl);
+
+    map.addControl(sidebar);
+
+    search.addTo(map);
+
+    map.addControl(loadingControl);
+
+    header.addTo(map);
+
+    sidebar.setContent(buildWelcomeSidebarContent());
+    sidebar.show();
+    // sidebar doesn't fire shown on load, so do it manually
+    sidebar.fireEvent('shown');
+
+    updateArticles();
+}
 
 function belowArticleZoomBound(map) {
     return map.getZoom() >= articleZoomBound;
@@ -42,23 +133,21 @@ function getFirstProperty(object) {
 }
 
 function buildWelcomeSidebarContent() {
-    var html = '';
-
-    html += '<p>The pins on the map represent Wikipedia articles, click on them to view the article details. The circles denote a cluster of articles. Clicking on these will zoom the map in so individual pins can be selected.</p>';
-    html += '<p>Pan about the map or use the search in the top-right corner to search for a location on the map.</p>';
-    html += '<p>The menu in the top-left corner offers multiple basemaps to use.</p>'
-    html += '<p>Clicking anywhere on the map will dismiss this panel.</p>';
-    html += '<hr>';
-    html += '<p class="italic">Thanks to both <a href="http://www.geonames.org">GeoNames</a> and <a href="http://www.www.wikipedia.org">Wikipedia</a> for providing the services and content.';
+    var html = `
+    <p>The pins on the map represent Wikipedia articles, click on them to view the article details. The circles denote a cluster of articles. Clicking on these will zoom the map in so individual pins can be selected.</p>
+    <p>Pan about the map or use the search in the top-right corner to search for a location on the map.</p>
+    <p>The menu in the top-left corner offers multiple basemaps to use.</p>
+    <p>Clicking anywhere on the map will dismiss this panel.</p>
+    <hr>
+    <p class="italic">Thanks to both <a href="http://www.geonames.org">GeoNames</a> and <a href="http://www.www.wikipedia.org">Wikipedia</a> for providing the services and content.`
 
     return html;
 }
 
 function buildZoomWarningSidebarContent(levelChangeNeeded) {
-    var html = "";
-
-    html += '<h3>Articles will not be drawn until you have zoomed back in ' + levelChangeNeeded + ' level' + (levelChangeNeeded > 1 ? 's' : '') + '.</h3>';
-    html += '<p>You may continue to browse the map at any zoom level, but articles will not be displayed.</p>';
+    var html = `
+    <h3>Articles will not be drawn until you have zoomed back in ` + levelChangeNeeded + ` level` + (levelChangeNeeded > 1 ? 's' : '') + `.</h3>
+   <p>You may continue to browse the map at any zoom level, but articles will not be displayed.</p>`
 
     return html;
 }
@@ -166,50 +255,35 @@ function updateArticles() {
     }
 }
 
-var
-carto = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-}),
-terrain =  L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
-    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    ext: 'png'
-}),
-toner =  L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.{ext}', {
-    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    ext: 'png'
-}),
-osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-}),
-map = L.map('map', {
-    center: [43.0861056, -77.672703],
-    zoom: 12,
-    minZoom: 8,
-    maxZoom: 15,
-    zoomControl: false,
-    layers: [carto]
-}),
-baseMaps = {
-    "CartoDB": carto,
-    "OpenStreetMap": osm,
-    "Terrian": terrain,
-    "Toner": toner
+//
+// Extensions
+//
+
+articleLayer.PrepareLeafletMarker = function(leafletMarker, markerData) {
+    leafletMarker.on('click', function(){
+        var params = {
+            action: "query",
+            format: "json",
+            titles: markerData.title,
+            prop: "pageimages|extracts|info",
+            pithumbsize: 300,
+            exintro: true,
+            inprop: 'url',
+            origin: '*'
+        };
+
+        var req = $.getJSON(
+            'https://en.wikipedia.org/w/api.php',
+            params
+        );
+
+        req.done(function(data) {
+            var content = buildSidebarContent(data);
+            sidebar.setContent(content);
+            sidebar.show();
+        });
+    });
 };
-
-L.control.layers(baseMaps).addTo(map);
-articleLayer.addTo(map);
-
-var zoomControl = L.control.zoom({
-    position: 'topright'
-});
-
-map.addControl(zoomControl);
-
-var sidebar = L.control.sidebar('article', {
-    position: 'left'
-});
 
 sidebar.hideCloseButton = function() {
     $('a.close').hide();
@@ -219,56 +293,8 @@ sidebar.showCloseButton = function() {
     $('a.close').show();
 };
 
-map.addControl(sidebar);
+//
+// Start the wheels turning
+//
 
-new L.Control.GeoSearch({
-    provider: new L.GeoSearch.Provider.Google(),
-    position: 'topleft',
-    showMarker: false
-}).addTo(map);
-
-var loadingControl = L.Control.loading({
-    position: 'topleft'
-});
-
-map.addControl(loadingControl);
-
-sidebar.setContent(buildWelcomeSidebarContent());
-sidebar.show();
-
-
-map.on('moveend', function(event) {
-    if(!ignoreMotion) {
-        updateArticles();
-    }
-});
-
-map.on('click', function(event) {
-    if(belowArticleZoomBound()) {
-        sidebar.hide();
-    }
-});
-
-sidebar.on('show', function(event) {
-    ignoreMotion = true;
-});
-
-sidebar.on('shown', function(event) {
-    setTimeout(function() {
-        ignoreMotion = false;
-    }, 250);
-});
-
-sidebar.on('hide', function(event) {
-    ignoreMotion = true;
-});
-
-sidebar.on('hidden', function(event) {
-    setTimeout(function() {
-        ignoreMotion = false;
-    }, 250);
-});
-
-var header = L.control.header('header').addTo(map);
-
-updateArticles();
+init();
