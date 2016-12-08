@@ -1,5 +1,6 @@
 var
 updatingArticles = false,
+ignoreMotion = false,
 apiRequest = null,
 articleLayer = new PruneClusterForLeaflet(),
 maxArticleZoomLevel = 12,
@@ -124,8 +125,6 @@ function addArticlesToMap(data) {
 
 function updateArticles() {
     map.fireEvent("dataloading");
-    articleLayer.RemoveMarkers();
-    articleLayer.ProcessView();
 
     if(map.getZoom() >= maxArticleZoomLevel) {
 
@@ -142,13 +141,15 @@ function updateArticles() {
         );
 
         apiRequest.done(function(data) {
+            articleLayer.RemoveMarkers();
             addArticlesToMap(data);
         });
     } else {
         var levelChangeNeeded = maxArticleZoomLevel - map.getZoom();
         sidebar.setContent(buildZoomWarningSidebarContent(levelChangeNeeded));
 
-        articleLayer.ma
+        articleLayer.RemoveMarkers();
+        articleLayer.ProcessView();
 
         sidebar.show();
         zoomWarningDisplayed = true;
@@ -220,13 +221,35 @@ sidebar.show();
 
 
 map.on('moveend', function(event) {
-    updateArticles();
+    if(!ignoreMotion) {
+        updateArticles();
+    }
 });
 
 map.on('click', function(event) {
     if(map.getZoom() >= maxArticleZoomLevel) {
         sidebar.hide();
     }
+});
+
+sidebar.on('show', function(event) {
+    ignoreMotion = true;
+});
+
+sidebar.on('shown', function(event) {
+    setTimeout(function() {
+        ignoreMotion = false;
+    }, 250);
+});
+
+sidebar.on('hide', function(event) {
+    ignoreMotion = true;
+});
+
+sidebar.on('hidden', function(event) {
+    setTimeout(function() {
+        ignoreMotion = false;
+    }, 250);
 });
 
 L.Control.Header = L.Control.extend({
