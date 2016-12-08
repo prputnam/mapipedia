@@ -35,8 +35,6 @@ articleLayer.PrepareLeafletMarker = function(leafletMarker, markerData) {
 function buildWelcomeSidebarContent() {
     var html = '';
 
-    html += '<h1>mapipedia</h1>';
-    html += '<hr>';
     html += '<p>The pins on the map represent Wikipedia articles, click on them to view the article details. The circles denote a cluster of articles. Clicking on these will zoom the map in so individual pins can be selected.</p>';
     html += '<p>Pan about the map or use the search in the top-right corner to search for a location on the map.</p>';
     html += '<p>The menu in the top-left corner offers multiple basemaps to use.</p>'
