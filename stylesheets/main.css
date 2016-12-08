@@ -15,6 +15,11 @@ body {
     height:100vh;
 }
 
+.leaflet-sidebar .leaflet-control#sidebar {
+    max-height: 98vh;
+    height: initial;
+}
+
 .italic {
     font-style: italic;
 }
