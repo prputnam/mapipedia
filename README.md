@@ -2,6 +2,8 @@
 
 A simple application that allows users to browse a map that is populated with pins representing geocoded [Wikipedia](https://www.wikipedia.org/) articles. It was created as a final project for Introduction to Geospatial Technologies taught by [Dr. Brian Tomaszewski](https://people.rit.edu/bmtski/) at [Rochester Institute of Technology](http://www.rit.edu/).
 
+The application can be seen [here](http://www.mapipedia.win/).
+
 ## Data
 
 The geocoded articles and their locations are gathered via an API provided by [GeoNames](http://www.geonames.org/), with further details about the articles being gathered directly from [Wikipedia's API](https://en.wikipedia.org/w/api.php).
